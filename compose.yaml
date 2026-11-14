@@ -1,7 +1,6 @@
 services:
   app:
-    build: .
-    container_name: todo-app
+    image: ghcr.io/farayshade/todo-app:latest
     ports:
       - "3000:3000"
     environment:
