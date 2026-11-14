@@ -3,140 +3,139 @@ const express = require("express");
 const path = require("path");
 const { pool, initDatabase } = require("./database");
 
-const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+function createApp(database = pool) {
+    const app = express();
 
-// Frontend
-app.use(express.static(
-    path.join(__dirname, "../frontend")
-));
+    app.use(express.json());
 
-// GET: получить все задачи
-app.get("/api/tasks", async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT * FROM tasks
-            ORDER BY id DESC
-        `);
+    app.use(express.static(
+        path.join(__dirname, "../frontend")
+    ));
 
-        res.json(result.rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Ошибка получения задач"
-        });
-    }
-});
+    app.get("/api/tasks", async (req, res) => {
+        try {
+            const result = await database.query(`
+                SELECT * FROM tasks
+                ORDER BY id DESC
+            `);
 
-// POST: создать задачу
-app.post("/api/tasks", async (req, res) => {
-    try {
-        const { title } = req.body;
-
-        if (typeof title !== "string" || !title.trim()) {
-            return res.status(400).json({
-                error: "Название задачи обязательно"
+            res.json(result.rows);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: "Ошибка получения задач"
             });
         }
+    });
 
-        const result = await pool.query(
-            `INSERT INTO tasks (title)
-             VALUES ($1)
-             RETURNING *`,
-            [title.trim()]
-        );
+    app.post("/api/tasks", async (req, res) => {
+        try {
+            const { title } = req.body;
 
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Ошибка создания задачи"
-        });
-    }
-});
+            if (typeof title !== "string" || !title.trim()) {
+                return res.status(400).json({
+                    error: "Название задачи обязательно"
+                });
+            }
 
-// PUT: изменить статус задачи
-app.put("/api/tasks/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
-        const { completed } = req.body;
+            const result = await database.query(
+                `INSERT INTO tasks (title)
+                 VALUES ($1)
+                 RETURNING *`,
+                [title.trim()]
+            );
 
-        if (
-            !Number.isSafeInteger(id) ||
-            id < 1 ||
-            typeof completed !== "boolean"
-        ) {
-            return res.status(400).json({
-                error: "Некорректные данные"
+            res.status(201).json(result.rows[0]);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: "Ошибка создания задачи"
             });
         }
+    });
 
-        const result = await pool.query(
-            `UPDATE tasks
-             SET completed = $1
-             WHERE id = $2
-             RETURNING *`,
-            [completed, id]
-        );
+    app.put("/api/tasks/:id", async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const { completed } = req.body;
 
-        if (result.rowCount === 0) {
-            return res.status(404).json({
-                error: "Задача не найдена"
+            if (
+                !Number.isSafeInteger(id) ||
+                id < 1 ||
+                typeof completed !== "boolean"
+            ) {
+                return res.status(400).json({
+                    error: "Некорректные данные"
+                });
+            }
+
+            const result = await database.query(
+                `UPDATE tasks
+                 SET completed = $1
+                 WHERE id = $2
+                 RETURNING *`,
+                [completed, id]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({
+                    error: "Задача не найдена"
+                });
+            }
+
+            res.json(result.rows[0]);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: "Ошибка обновления задачи"
             });
         }
+    });
 
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Ошибка обновления задачи"
-        });
-    }
-});
+    app.delete("/api/tasks/:id", async (req, res) => {
+        try {
+            const id = Number(req.params.id);
 
-// DELETE: удалить задачу
-app.delete("/api/tasks/:id", async (req, res) => {
-    try {
-        const id = Number(req.params.id);
+            if (!Number.isSafeInteger(id) || id < 1) {
+                return res.status(400).json({
+                    error: "Некорректный ID"
+                });
+            }
 
-        if (!Number.isSafeInteger(id) || id < 1) {
-            return res.status(400).json({
-                error: "Некорректный ID"
+            const result = await database.query(
+                `DELETE FROM tasks
+                 WHERE id = $1
+                 RETURNING id`,
+                [id]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({
+                    error: "Задача не найдена"
+                });
+            }
+
+            res.json({
+                message: "Задача удалена"
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: "Ошибка удаления задачи"
             });
         }
+    });
 
-        const result = await pool.query(
-            `DELETE FROM tasks
-             WHERE id = $1
-             RETURNING id`,
-            [id]
-        );
+    return app;
+}
 
-        if (result.rowCount === 0) {
-            return res.status(404).json({
-                error: "Задача не найдена"
-            });
-        }
-
-        res.json({
-            message: "Задача удалена"
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: "Ошибка удаления задачи"
-        });
-    }
-});
-
-// Запуск приложения
 async function startServer() {
     try {
         await initDatabase();
 
-        app.listen(PORT, () => {
+        createApp().listen(PORT, () => {
             console.log("--------------------------------");
             console.log("TODO application started");
             console.log(`URL: http://localhost:${PORT}`);
@@ -148,5 +147,9 @@ async function startServer() {
     }
 }
 
-startServer();
+if (require.main === module) {
+    startServer();
+}
+
+module.exports = { createApp };
 

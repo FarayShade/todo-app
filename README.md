@@ -17,3 +17,11 @@ docker compose up --build
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Stop the app with `Ctrl+C` or run `docker compose down`.
+
+## Tests
+
+Run the API tests with Node.js:
+
+```bash
+npm test
+```

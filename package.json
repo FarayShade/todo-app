@@ -5,7 +5,8 @@
   "description": "Simple TODO application",
   "main": "src/backend/server.js",
   "scripts": {
-    "start": "node src/backend/server.js"
+    "start": "node src/backend/server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "express": "^5.1.0",
