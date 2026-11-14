@@ -13,7 +13,7 @@ POSTGRES_DB=todo-app-db
 Start the app:
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Stop the app with `Ctrl+C` or run `docker compose down`.
