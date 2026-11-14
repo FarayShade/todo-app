@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO Application</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <main class="container">
+        <header>
+            <h1>Мои задачи</h1>
+            <p>Простой менеджер задач</p>
+        </header>
+
+        <form id="task-form">
+            <input
+                type="text"
+                id="task-input"
+                placeholder="Введите новую задачу..."
+                maxlength="500"
+                required
+            >
+            <button type="submit">Добавить</button>
+        </form>
+
+        <div class="stats">
+            <span id="total-count">Всего: 0</span>
+            <span id="completed-count">Выполнено: 0</span>
+        </div>
+
+        <div id="task-list">
+            <p class="empty">Загрузка задач...</p>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
