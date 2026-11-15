@@ -1,5 +1,3 @@
-An AI-generated Node.js test project for experimenting with Docker
-
 ## Run
 
 Make sure Docker with Docker Compose is installed. Create a `.env` file in the project root:
